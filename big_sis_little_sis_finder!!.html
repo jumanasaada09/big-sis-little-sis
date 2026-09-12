@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Big Sis Little Sis Finder</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 40px 20px 80px;
+    font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+    background: linear-gradient(135deg, #eaf6ff 0%, #d5ecff 50%, #eaf6ff 100%);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    color: #2a6ca3;
+  }
+
+  .bubble {
+    position: fixed;
+    border-radius: 50%;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 40px;
+    color: #3579b3;
+    text-shadow: 2px 2px 0px #ffffff, 4px 4px 0px #bfe3ff;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+
+  p.subtitle {
+    text-align: center;
+    color: #5aa8e0;
+    font-size: 16px;
+    margin-bottom: 30px;
+  }
+
+  .search-wrap {
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  input#searchInput {
+    width: 100%;
+    padding: 16px 22px;
+    font-size: 18px;
+    border-radius: 30px;
+    border: 3px solid #a4d8ff;
+    outline: none;
+    background: #ffffff;
+    color: #2a6ca3;
+    font-family: inherit;
+    box-shadow: 0 4px 12px rgba(90, 168, 224, 0.25);
+  }
+
+  input#searchInput:focus {
+    border-color: #5aa8e0;
+  }
+
+  .suggestions {
+    position: absolute;
+    top: 62px;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-radius: 20px;
+    border: 2px solid #bfe3ff;
+    box-shadow: 0 6px 16px rgba(90,168,224,0.25);
+    overflow: hidden;
+    z-index: 10;
+    display: none;
+  }
+
+  .suggestions div {
+    padding: 12px 22px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #3579b3;
+  }
+
+  .suggestions div:hover {
+    background: #eaf6ff;
+  }
+
+  .card {
+    display: none;
+    background: #ffffff;
+    border-radius: 24px;
+    border: 3px solid #bfe3ff;
+    box-shadow: 0 6px 18px rgba(90,168,224,0.25);
+    padding: 26px 28px;
+    margin-top: 10px;
+  }
+
+  .card h2 {
+    margin: 0 0 4px;
+    font-size: 26px;
+    color: #2a6ca3;
+  }
+
+  .card .role-tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: bold;
+    color: #ffffff;
+    background: linear-gradient(135deg, #7ec4f0, #5aa8e0);
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+  }
+
+  .pair-banner {
+    background: linear-gradient(135deg, #eaf6ff, #d5ecff);
+    border-radius: 18px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .pair-banner .label {
+    font-size: 13px;
+    color: #5aa8e0;
+    margin-bottom: 2px;
+  }
+
+  .pair-banner .pair-name {
+    font-size: 22px;
+    font-weight: bold;
+    color: #2a6ca3;
+  }
+
+  .section-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #5aa8e0;
+    margin: 18px 0 8px;
+    border-bottom: 2px dashed #bfe3ff;
+    padding-bottom: 4px;
+  }
+
+  .info-row {
+    display: flex;
+    padding: 6px 0;
+    font-size: 15px;
+  }
+
+  .info-row .info-label {
+    width: 140px;
+    min-width: 140px;
+    color: #7ec4f0;
+    font-weight: bold;
+  }
+
+  .info-row .info-value {
+    color: #2a6ca3;
+  }
+
+  .no-match {
+    display: none;
+    text-align: center;
+    color: #5aa8e0;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    border: 1px solid #bfe3ff;
+  }
+</style>
+</head>
+<body>
+
+<div class="bubble" style="width:80px;height:80px;background:#bfe3ff;top:20px;left:5%;"></div>
+<div class="bubble" style="width:50px;height:50px;background:#a4d8ff;top:100px;left:85%;"></div>
+<div class="bubble" style="width:100px;height:100px;background:#a4d8ff;top:420px;left:2%;"></div>
+<div class="bubble" style="width:60px;height:60px;background:#8fcaf5;top:640px;left:90%;"></div>
+<div class="bubble" style="width:40px;height:40px;background:#cfe9ff;top:260px;left:92%;"></div>
+<div class="bubble" style="width:35px;height:35px;background:#8fcaf5;top:900px;left:80%;"></div>
+
+<div class="container">
+  <h1>Big Sis Little Sis Finder</h1>
+  <p class="subtitle">Search your name to meet your match!</p>
+
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Type your name..." autocomplete="off">
+    <div class="suggestions" id="suggestions"></div>
+  </div>
+
+  <div class="no-match" id="noMatch">No swimmer found with that name. Try again!</div>
+
+  <div class="card" id="card">
+    <span class="role-tag" id="roleTag"></span>
+    <h2 id="personName"></h2>
+    <div class="info-row"><span class="info-label">Grade</span><span class="info-value" id="personGrade"></span></div>
+    <div class="info-row"><span class="info-label">Fav color</span><span class="info-value" id="personColor"></span></div>
+
+    <div class="pair-banner">
+      <div class="label" id="pairLabel"></div>
+      <div class="pair-name" id="pairName"></div>
+    </div>
+
+    <div class="section-title" id="pairSectionTitle"></div>
+    <div class="info-row"><span class="info-label">Go-to snack</span><span class="info-value" id="pairSnack"></span></div>
+    <div class="info-row"><span class="info-label">Salty snack</span><span class="info-value" id="pairSalty"></span></div>
+    <div class="info-row"><span class="info-label">Sweet snack</span><span class="info-value" id="pairSweet"></span></div>
+    <div class="info-row"><span class="info-label">Drinks</span><span class="info-value" id="pairDrinks"></span></div>
+    <div class="info-row"><span class="info-label">Fav color</span><span class="info-value" id="pairColor"></span></div>
+    <div class="info-row"><span class="info-label">Movie/TV</span><span class="info-value" id="pairMovie"></span></div>
+  </div>
+</div>
+
+<script>
+const people = {
+  "amber": {
+    grade: 9, role: "little", pair: "mariam hassan",
+    snack: "Energy bars, honey stinger waffles, candy, something salty",
+    salty: "Cheese-Its, goldfish, popcorn",
+    sweet: "Sour candy, gummies, frosted animal crackers",
+    drinks: "Dr Pepper, Shirley Temple",
+    color: "Red",
+    movie: "10 Things I Hate About You, Spider-Man"
+  },
+  "marcela douglas": {
+    grade: 9, role: "little", pair: "sofie dumitrascu",
+    snack: "Gogo squeeze, chomps, peanut butter date balls, smart sweets watermelon",
+    salty: "Dots pretzels, ruffles chips, Trader Joe's takis, popcorn, pickles",
+    sweet: "Dark chocolate covered almonds, warheads, gummy sharks/worms/bears, rainbow airhead strips",
+    drinks: "Zero sugar Body Armor, smoothies, Olipop and Poppi",
+    color: "Blue",
+    movie: "Bella and the Bulldogs"
+  },
+  "savannah dorris": {
+    grade: 9, role: "little", pair: "isa",
+    snack: "Applesauce, energy stingers, drizzilicious",
+    salty: "Saltine crackers",
+    sweet: "Anything but chocolate",
+    drinks: "Shirley Temples, water, Gatorade, Red Bull",
+    color: "Orange",
+    movie: "The Hunger Games"
+  },
+  "stella johnson": {
+    grade: 9, role: "little", pair: "jumana saada",
+    snack: "Cheeze-Its, goldfish, trail mix, dark chocolate",
+    salty: "Jalapeno chips, garlic parmesan pretzels",
+    sweet: "Sour Patch Kids, dark chocolate, Twix, sour jolly rancher gummies",
+    drinks: "Unsweet iced tea, water",
+    color: "Blue & Pink",
+    movie: "27 Dresses"
+  },
+  "selina": {
+    grade: 9, role: "little", pair: "avery wallace",
+    snack: "Pretzels, energy gummies, goldfish, cheese crackers",
+    salty: "Pretzels, potato chips (any flavor), pickles, goldfish, popcorn",
+    sweet: "Drizzilicious, sweet tart ropes, pocky, anything but chocolate bars",
+    drinks: "Capri Suns, soda, anything but energy drinks or coffee",
+    color: "Pink, white, or purple",
+    movie: "To All the Boys I've Loved Before"
+  },
+  "abigail perez": {
+    grade: 10, role: "little", pair: "vivian yang",
+    snack: "GoGo Squeeze electrolyte fruit blend, pretzels, honey stinger energy waffles",
+    salty: "BBQ Lays, Pringles, goldfish",
+    sweet: "Gushers, Welch's fruit snacks",
+    drinks: "Banana milk, mango juice",
+    color: "Pink",
+    movie: "Miraculous Ladybug"
+  },
+  "ada": {
+    grade: 10, role: "little", pair: "abby mahlum",
+    snack: "Fruit snacks (Welch's)",
+    salty: "Pretzels",
+    sweet: "Tru Fru",
+    drinks: "Apple juice",
+    color: "Pink",
+    movie: "Grey's Anatomy, To All the Boys I've Loved Before"
+  },
+  "amaleah": {
+    grade: 10, role: "little", pair: "navy",
+    snack: "Beef sticks, gogo squeeze, stinger gummies",
+    salty: "Goldfish, triscuits, crunch master multigrain chips, garden salsa Sun Chips",
+    sweet: "Chocolate, Hello Pandas, Nutella & Go, pocky sticks",
+    drinks: "Bloom energy drinks (any flavor), apple juice, water, matcha",
+    color: "Blue, pink, or purple",
+    movie: "Dexter, My Little Pony"
+  },
+  "olivia lendasse": {
+    grade: 10, role: "little", pair: "annabelle g",
+    snack: "Honey stinger energy waffles, gogo squeeze, ritz crackers",
+    salty: "Trail mix, pretzels, goldfish",
+    sweet: "Watermelon sour patch, nerds gummy clusters",
+    drinks: "Gatorade, Bloom energy",
+    color: "Pink",
+    movie: "Wicked, Gossip Girl"
+  },
+  "vivian costesso": {
+    grade: 10, role: "little", pair: "annabelle hill",
+    snack: "Chipotle",
+    salty: "Bugles, lime tortilla chips, dots pretzels",
+    sweet: "Tru Fru, chocolate, caramel M&Ms",
+    drinks: "Iced coffee, Body Armor",
+    color: "Green",
+    movie: "Dexter"
+  },
+  "annabelle g": {
+    grade: 10, role: "big", pair: "olivia lendasse",
+    snack: "Pringles",
+    salty: "Pringles, Lay's original",
+    sweet: "Gummy bears",
+    drinks: "Sprite, banana strawberry Body Armor",
+    color: "Pink",
+    movie: "The Office"
+  },
+  "sofie dumitrascu": {
+    grade: 10, role: "big", pair: "marcela douglas",
+    snack: "Garden salsa Sun Chips, white cheddar popcorn, pretzels and hummus, Clio chocolate covered yogurt bars",
+    salty: "Garden salsa Sun Chips",
+    sweet: "Chocolate pita chips, watermelon sour patch, mini M&Ms, gummies",
+    drinks: "Orange juice, smoothies",
+    color: "Red, blue, or green - doesn't care",
+    movie: "Avatar the Last Airbender, Arcane, Princess Diaries"
+  },
+  "vivian yang": {
+    grade: 10, role: "big", pair: "abigail perez",
+    snack: "Fruit, popcorn, beef stick, applesauce, protein waffle",
+    salty: "Takis",
+    sweet: "Airhead Xtremes",
+    drinks: "Monster",
+    color: "Green",
+    movie: "Jojo's Bizarre Adventure"
+  },
+  "avery wallace": {
+    grade: 10, role: "big", pair: "selina",
+    snack: "Freeze dried fruit, popcorn, pringles, hot Cheetos, cheez-its",
+    salty: "Pretzels, popcorn, Pringles, hot Cheetos, cheez-its",
+    sweet: "Drizzilicious, Twix, Welch's fruit snacks, Tru Fru, caramel",
+    drinks: "Dr Pepper, lemonade",
+    color: "Blue",
+    movie: "Project Hail Mary (movie), Friends (TV show)"
+  },
+  "annabelle hill": {
+    grade: 11, role: "big", pair: "vivian costesso",
+    snack: "Fruit snacks, protein bars, protein drinks",
+    salty: "Cheetos jalapeno cheddar",
+    sweet: "Chocolate, gummy bears, rainbow strips",
+    drinks: "Dr Pepper",
+    color: "Pink",
+    movie: "To All the Boys I've Loved Before"
+  },
+  "navy": {
+    grade: 11, role: "big", pair: "amaleah",
+    snack: "Quaker mini apple cinnamon rice cakes",
+    salty: "Goldfish",
+    sweet: "Chocolate Barebell protein bar, Mott's fruit snacks, mini M&Ms, Reese's Take 5",
+    drinks: "Tropical Curtis vitamin water, apple Bloom energy drink",
+    color: "Red",
+    movie: "Mamma Mia!"
+  },
+  "abby mahlum": {
+    grade: 12, role: "big", pair: "ada",
+    snack: "Core Power 26g protein chocolate shake, green dots pretzels, peach mango Body Armor",
+    salty: "Cheetos, cool ranch Doritos, Chex mix",
+    sweet: "Tru Fru raspberry, cookies and cream Hershey's, Lindt chocolate balls",
+    drinks: "Body Armor peach mango, simply peach juice, chocolate Core Power protein shake",
+    color: "Pink",
+    movie: "Shawshank Redemption"
+  },
+  "isa": {
+    grade: 12, role: "big", pair: "savannah dorris",
+    snack: "Box of fruit from HEB, Boom Chicka Pop, bananas, Noosa yogurt, nothing candy",
+    salty: "Pretzels or baked Lays (not greasy)",
+    sweet: "Goyo squeeze, drizzle things",
+    drinks: "Body Armor, naked mango drink",
+    color: "Yellow",
+    movie: "H2O: Just Add Water"
+  },
+  "jumana saada": {
+    grade: 12, role: "big", pair: "stella johnson",
+    snack: "Protein bars, honey stinger energy chews (fruit smoothie), box of fruit from HEB",
+    salty: "Peanut butter ritz crackers, salt & vinegar Pringles, garden salsa Sun Chips",
+    sweet: "Chocolate (Lindt/Ghirardelli), Tru Fru, caramel M&Ms",
+    drinks: "Chocolate Core Power protein shake, fresh HEB orange juice, Body Armor coconut pineapple",
+    color: "Blue",
+    movie: "Friends, The Hunger Games"
+  },
+  "mariam hassan": {
+    grade: 12, role: "big", pair: "amber",
+    snack: "Chips, fruit",
+    salty: "Chips",
+    sweet: "Dark chocolate",
+    drinks: "Water",
+    color: "Blue",
+    movie: "Attack on Titan"
+  }
+};
+
+const nameList = Object.keys(people);
+const input = document.getElementById('searchInput');
+const suggestionsBox = document.getElementById('suggestions');
+const card = document.getElementById('card');
+const noMatch = document.getElementById('noMatch');
+
+function titleCase(str) {
+  return str.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+}
+
+function showSuggestions(query) {
+  const q = query.trim().toLowerCase();
+  suggestionsBox.innerHTML = '';
+  if (!q) { suggestionsBox.style.display = 'none'; return; }
+  const matches = nameList.filter(n => n.includes(q));
+  if (matches.length === 0) { suggestionsBox.style.display = 'none'; return; }
+  matches.slice(0, 6).forEach(n => {
+    const div = document.createElement('div');
+    div.textContent = titleCase(n);
+    div.onclick = () => {
+      input.value = titleCase(n);
+      suggestionsBox.style.display = 'none';
+      renderCard(n);
+    };
+    suggestionsBox.appendChild(div);
+  });
+  suggestionsBox.style.display = 'block';
+}
+
+function renderCard(key) {
+  const person = people[key];
+  if (!person) {
+    card.style.display = 'none';
+    noMatch.style.display = 'block';
+    return;
+  }
+  noMatch.style.display = 'none';
+  card.style.display = 'block';
+
+  document.getElementById('personName').textContent = titleCase(key);
+  document.getElementById('roleTag').textContent = person.role === 'big' ? 'BIG SIS' : 'LITTLE SIS';
+  document.getElementById('personGrade').textContent = person.grade + 'th grade';
+  document.getElementById('personColor').textContent = person.color;
+
+  const pairKey = person.pair;
+  const pairPerson = people[pairKey];
+  const label = person.role === 'big' ? 'Your little sis is' : 'Your big sis is';
+  document.getElementById('pairLabel').textContent = label;
+  document.getElementById('pairName').textContent = titleCase(pairKey);
+
+  document.getElementById('pairSectionTitle').textContent =
+    (person.role === 'big' ? "Get to know your little sis" : "Get to know your big sis");
+
+  document.getElementById('pairSnack').textContent = pairPerson.snack;
+  document.getElementById('pairSalty').textContent = pairPerson.salty;
+  document.getElementById('pairSweet').textContent = pairPerson.sweet;
+  document.getElementById('pairDrinks').textContent = pairPerson.drinks;
+  document.getElementById('pairColor').textContent = pairPerson.color;
+  document.getElementById('pairMovie').textContent = pairPerson.movie;
+}
+
+input.addEventListener('input', (e) => {
+  showSuggestions(e.target.value);
+  card.style.display = 'none';
+  noMatch.style.display = 'none';
+});
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const q = input.value.trim().toLowerCase();
+    suggestionsBox.style.display = 'none';
+    if (people[q]) {
+      renderCard(q);
+    } else {
+      const partial = nameList.find(n => n.includes(q));
+      if (partial) {
+        input.value = titleCase(partial);
+        renderCard(partial);
+      } else {
+        card.style.display = 'none';
+        noMatch.style.display = 'block';
+      }
+    }
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.search-wrap')) {
+    suggestionsBox.style.display = 'none';
+  }
+});
+</script>
+
+</body>
+</html>
